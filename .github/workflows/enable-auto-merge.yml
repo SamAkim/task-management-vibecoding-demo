@@ -1,0 +1,47 @@
+name: Enable Automatic Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enable native GitHub auto-merge
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.graphql(
+              `
+              mutation EnablePullRequestAutoMerge(
+                $pullRequestId: ID!,
+                $mergeMethod: PullRequestMergeMethod!
+              ) {
+                enablePullRequestAutoMerge(
+                  input: {
+                    pullRequestId: $pullRequestId,
+                    mergeMethod: $mergeMethod
+                  }
+                ) {
+                  pullRequest {
+                    number
+                  }
+                }
+              }
+              `,
+              {
+                pullRequestId: context.payload.pull_request.node_id,
+                mergeMethod: "SQUASH"
+              }
+            );
