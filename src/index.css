@@ -183,7 +183,9 @@ body {
   color: var(--text-secondary);
 }
 
-.task-form__input,\n.task-form__textarea,\n.task-form__select {
+.task-form__input,
+.task-form__textarea,
+.task-form__select {
   width: 100%;
   padding: 0.65rem 0.85rem;
   background: var(--bg-input);
