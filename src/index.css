@@ -523,6 +523,176 @@ body {
   border-color: var(--accent-red);
 }
 
+/* ---------- V2 Additions ---------- */
+
+/* Filters Group */
+.dashboard__filters-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  width: 100%;
+}
+
+/* Priority Filter */
+.priority-filter {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.priority-filter__button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.priority-filter__button:hover {
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.priority-filter__button--active {
+  background: var(--accent-blue-soft);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.priority-filter__button--active:hover {
+  background: var(--accent-blue-soft);
+  color: var(--accent-blue);
+}
+
+/* Sort Control */
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto; /* Push sort to the right on desktop */
+}
+
+.sort-control__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sort-control__select {
+  padding: 0.5rem 1rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.sort-control__select:focus {
+  border-color: var(--accent-blue);
+}
+
+.sort-control__select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Task Form Fields Layout */
+.task-form__field-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+/* Form Errors */
+.task-form__input--error {
+  border-color: var(--accent-red) !important;
+}
+
+.task-form__input--error:focus {
+  box-shadow: 0 0 0 3px var(--accent-red-soft) !important;
+}
+
+.task-form__error-message {
+  font-size: 0.75rem;
+  color: var(--accent-red);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Task Card Badge Priorities */
+.task-card__badges {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.task-card__badge--priority {
+  font-weight: 600;
+}
+
+.task-card__badge--low {
+  background: var(--accent-green-soft);
+  color: var(--accent-green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.task-card__badge--medium {
+  background: var(--accent-amber-soft);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.task-card__badge--high {
+  background: var(--accent-red-soft);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Task Card Meta due dates */
+.task-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.task-card__due-date {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.task-card__due-date--overdue {
+  color: var(--accent-red);
+}
+
+.task-card__overdue-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  background: var(--accent-red-soft);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .dashboard__header {
@@ -542,8 +712,14 @@ body {
     align-items: stretch;
   }
 
+  .dashboard__filters-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .status-filter {
     justify-content: stretch;
+    width: 100%;
   }
 
   .status-filter__button {
@@ -551,8 +727,39 @@ body {
     text-align: center;
   }
 
+  .priority-filter {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .priority-filter__button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .sort-control {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-xs);
+  }
+
+  .sort-control__select {
+    width: 100%;
+  }
+
   .task-card__header {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .task-card__badges {
+    margin-top: var(--space-xs);
+  }
+
+  .task-form__field-group {
+    grid-template-columns: 1fr;
   }
 
   .task-form__actions {

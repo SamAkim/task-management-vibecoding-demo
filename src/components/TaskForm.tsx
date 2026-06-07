@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { Task, TaskStatus } from '../types/Task';
+import type { Task, TaskStatus, TaskPriority } from '../types/Task';
 
 interface TaskFormProps {
-  onSubmit: (title: string, description: string, status: TaskStatus) => void;
-  onUpdate?: (id: string, updates: { title: string; description: string; status: TaskStatus }) => void;
+  onSubmit: (title: string, description: string, status: TaskStatus, priority: TaskPriority, dueDate: string) => void;
+  onUpdate?: (id: string, updates: { title: string; description: string; status: TaskStatus; priority: TaskPriority; dueDate: string }) => void;
   taskToEdit?: Task | null;
   onCancelEdit?: () => void;
 }
@@ -12,18 +12,26 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('todo');
+  const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [dueDate, setDueDate] = useState('');
+
+  const [errors, setErrors] = useState<{ title?: string; dueDate?: string }>({});
 
   // Derive form values from taskToEdit when in edit mode
   const isEditing = !!taskToEdit;
   const currentTitle = isEditing ? taskToEdit.title : title;
   const currentDescription = isEditing ? taskToEdit.description : description;
   const currentStatus = isEditing ? taskToEdit.status : status;
+  const currentPriority = isEditing ? taskToEdit.priority : priority;
+  const currentDueDate = isEditing ? taskToEdit.dueDate : dueDate;
 
   // For edit mode, we track local overrides via a separate key
   const [editOverrides, setEditOverrides] = useState<{
     title?: string;
     description?: string;
     status?: TaskStatus;
+    priority?: TaskPriority;
+    dueDate?: string;
     editId?: string;
   }>({});
 
@@ -33,29 +41,58 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
     ? editOverrides.description : currentDescription;
   const editStatus = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.status !== undefined
     ? editOverrides.status : currentStatus;
+  const editPriority = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.priority !== undefined
+    ? editOverrides.priority : currentPriority;
+  const editDueDate = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.dueDate !== undefined
+    ? editOverrides.dueDate : currentDueDate;
 
   const displayTitle = isEditing ? editTitle : title;
   const displayDescription = isEditing ? editDescription : description;
   const displayStatus = isEditing ? editStatus : status;
+  const displayPriority = isEditing ? editPriority : priority;
+  const displayDueDate = isEditing ? editDueDate : dueDate;
+
+  const validate = (): boolean => {
+    const newErrors: { title?: string; dueDate?: string } = {};
+    if (!displayTitle.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    if (!displayDueDate) {
+      newErrors.dueDate = 'Due date is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!displayTitle.trim()) return;
+    if (!validate()) return;
 
     if (taskToEdit && onUpdate) {
       onUpdate(taskToEdit.id, {
         title: displayTitle.trim(),
         description: displayDescription.trim(),
         status: displayStatus,
+        priority: displayPriority,
+        dueDate: displayDueDate,
       });
       setEditOverrides({});
     } else {
-      onSubmit(displayTitle.trim(), displayDescription.trim(), displayStatus);
+      onSubmit(
+        displayTitle.trim(),
+        displayDescription.trim(),
+        displayStatus,
+        displayPriority,
+        displayDueDate
+      );
     }
 
     setTitle('');
     setDescription('');
     setStatus('todo');
+    setPriority('medium');
+    setDueDate('');
+    setErrors({});
   };
 
   const handleTitleChange = (value: string) => {
@@ -63,6 +100,9 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
       setEditOverrides((prev) => ({ ...prev, title: value, editId: taskToEdit.id }));
     } else {
       setTitle(value);
+    }
+    if (value.trim()) {
+      setErrors((prev) => ({ ...prev, title: undefined }));
     }
   };
 
@@ -82,13 +122,33 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
     }
   };
 
+  const handlePriorityChange = (value: TaskPriority) => {
+    if (isEditing && taskToEdit) {
+      setEditOverrides((prev) => ({ ...prev, priority: value, editId: taskToEdit.id }));
+    } else {
+      setPriority(value);
+    }
+  };
+
+  const handleDueDateChange = (value: string) => {
+    if (isEditing && taskToEdit) {
+      setEditOverrides((prev) => ({ ...prev, dueDate: value, editId: taskToEdit.id }));
+    } else {
+      setDueDate(value);
+    }
+    if (value) {
+      setErrors((prev) => ({ ...prev, dueDate: undefined }));
+    }
+  };
+
   const handleCancel = () => {
     setEditOverrides({});
+    setErrors({});
     if (onCancelEdit) onCancelEdit();
   };
 
   return (
-    <form className="task-form" onSubmit={handleSubmit}>
+    <form className="task-form" onSubmit={handleSubmit} noValidate>
       <h2 className="task-form__title">
         {isEditing ? 'Edit Task' : 'Create New Task'}
       </h2>
@@ -98,13 +158,18 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
           <input
             id="task-title"
             type="text"
-            className="task-form__input"
+            className={`task-form__input ${errors.title ? 'task-form__input--error' : ''}`}
             placeholder="Enter task title..."
             value={displayTitle}
             onChange={(e) => handleTitleChange(e.target.value)}
-            required
           />
+          {errors.title && (
+            <span className="task-form__error-message" data-testid="title-error">
+              {errors.title}
+            </span>
+          )}
         </div>
+        
         <div className="task-form__field">
           <label htmlFor="task-description" className="task-form__label">Description</label>
           <textarea
@@ -116,20 +181,54 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
             rows={3}
           />
         </div>
-        <div className="task-form__field">
-          <label htmlFor="task-status" className="task-form__label">Status</label>
-          <select
-            id="task-status"
-            className="task-form__select"
-            value={displayStatus}
-            onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-          >
-            <option value="todo">To Do</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
+        
+        <div className="task-form__field-group">
+          <div className="task-form__field">
+            <label htmlFor="task-status" className="task-form__label">Status</label>
+            <select
+              id="task-status"
+              className="task-form__select"
+              value={displayStatus}
+              onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
+            >
+              <option value="todo">To Do</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          
+          <div className="task-form__field">
+            <label htmlFor="task-priority" className="task-form__label">Priority</label>
+            <select
+              id="task-priority"
+              className="task-form__select"
+              value={displayPriority}
+              onChange={(e) => handlePriorityChange(e.target.value as TaskPriority)}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          
+          <div className="task-form__field">
+            <label htmlFor="task-due-date" className="task-form__label">Due Date</label>
+            <input
+              id="task-due-date"
+              type="date"
+              className={`task-form__input ${errors.dueDate ? 'task-form__input--error' : ''}`}
+              value={displayDueDate}
+              onChange={(e) => handleDueDateChange(e.target.value)}
+            />
+            {errors.dueDate && (
+              <span className="task-form__error-message" data-testid="due-date-error">
+                {errors.dueDate}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+      
       <div className="task-form__actions">
         <button type="submit" className="task-form__button task-form__button--submit">
           {isEditing ? 'Update Task' : 'Add Task'}
