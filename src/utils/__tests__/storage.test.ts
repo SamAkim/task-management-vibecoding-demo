@@ -6,6 +6,8 @@ const mockTask: Task = {
   title: 'Test Task',
   description: 'Test description',
   status: 'todo',
+  priority: 'medium',
+  dueDate: '2024-01-02',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -27,6 +29,22 @@ describe('storage utility', () => {
       expect(result).toEqual([mockTask]);
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Test Task');
+    });
+
+    it('defaults missing priority and dueDate for backward compatibility', () => {
+      const legacyTask = {
+        id: 'legacy-123',
+        title: 'Legacy Task',
+        description: 'No priority or due date',
+        status: 'todo',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+      localStorage.setItem('tasks', JSON.stringify([legacyTask]));
+      const result = loadTasks();
+      expect(result).toHaveLength(1);
+      expect(result[0].priority).toBe('medium');
+      expect(result[0].dueDate).toBe(new Date().toISOString().split('T')[0]);
     });
 
     it('returns an empty array when stored data is not an array', () => {
