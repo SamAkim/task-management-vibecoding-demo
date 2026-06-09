@@ -1,8 +1,8 @@
 import type { StatusFilter as StatusFilterType } from '../hooks/useTasks';
 
 interface StatusFilterProps {
-  value: StatusFilterType;
-  onChange: (value: StatusFilterType) => void;
+  readonly value: StatusFilterType;
+  readonly onChange: (value: StatusFilterType) => void;
 }
 
 const FILTER_OPTIONS: { value: StatusFilterType; label: string }[] = [
@@ -14,7 +14,8 @@ const FILTER_OPTIONS: { value: StatusFilterType; label: string }[] = [
 
 export function StatusFilter({ value, onChange }: StatusFilterProps) {
   return (
-    <div className="status-filter" role="group" aria-label="Filter by status">
+    <fieldset className="status-filter">
+      <legend className="sr-only">Filter by status</legend>
       {FILTER_OPTIONS.map((option) => (
         <button
           key={option.value}
@@ -28,6 +29,6 @@ export function StatusFilter({ value, onChange }: StatusFilterProps) {
           {option.label}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }

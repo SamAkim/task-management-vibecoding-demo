@@ -13,9 +13,9 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 interface TaskCardProps {
-  task: Task;
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => void;
+  readonly task: Task;
+  readonly onEdit: (task: Task) => void;
+  readonly onDelete: (id: string) => void;
 }
 
 export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {

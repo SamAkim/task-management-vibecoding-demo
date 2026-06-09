@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import type { Task, TaskStatus, TaskPriority } from '../types/Task';
 
 interface TaskFormProps {
-  onSubmit: (title: string, description: string, status: TaskStatus, priority: TaskPriority, dueDate: string) => void;
-  onUpdate?: (id: string, updates: { title: string; description: string; status: TaskStatus; priority: TaskPriority; dueDate: string }) => void;
-  taskToEdit?: Task | null;
-  onCancelEdit?: () => void;
+  readonly onSubmit: (title: string, description: string, status: TaskStatus, priority: TaskPriority, dueDate: string) => void;
+  readonly onUpdate?: (id: string, updates: { title: string; description: string; status: TaskStatus; priority: TaskPriority; dueDate: string }) => void;
+  readonly taskToEdit?: Task | null;
+  readonly onCancelEdit?: () => void;
 }
 
 export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskFormProps) {
@@ -64,7 +65,7 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
 
