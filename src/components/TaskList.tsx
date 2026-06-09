@@ -2,9 +2,9 @@ import type { Task } from '../types/Task';
 import { TaskCard } from './TaskCard';
 
 interface TaskListProps {
-  tasks: Task[];
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => void;
+  readonly tasks: Task[];
+  readonly onEdit: (task: Task) => void;
+  readonly onDelete: (id: string) => void;
 }
 
 export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
