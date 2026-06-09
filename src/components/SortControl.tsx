@@ -1,8 +1,8 @@
 import type { SortBy } from '../hooks/useTasks';
 
 interface SortControlProps {
-  value: SortBy;
-  onChange: (value: SortBy) => void;
+  readonly value: SortBy;
+  readonly onChange: (value: SortBy) => void;
 }
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [

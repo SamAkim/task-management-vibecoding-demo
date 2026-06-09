@@ -1,8 +1,8 @@
 import type { PriorityFilter as PriorityFilterType } from '../hooks/useTasks';
 
 interface PriorityFilterProps {
-  value: PriorityFilterType;
-  onChange: (value: PriorityFilterType) => void;
+  readonly value: PriorityFilterType;
+  readonly onChange: (value: PriorityFilterType) => void;
 }
 
 const FILTER_OPTIONS: { value: PriorityFilterType; label: string }[] = [
@@ -14,7 +14,8 @@ const FILTER_OPTIONS: { value: PriorityFilterType; label: string }[] = [
 
 export function PriorityFilter({ value, onChange }: PriorityFilterProps) {
   return (
-    <div className="priority-filter" role="group" aria-label="Filter by priority">
+    <fieldset className="priority-filter">
+      <legend className="sr-only">Filter by priority</legend>
       {FILTER_OPTIONS.map((option) => (
         <button
           key={option.value}
@@ -28,6 +29,6 @@ export function PriorityFilter({ value, onChange }: PriorityFilterProps) {
           {option.label}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }
