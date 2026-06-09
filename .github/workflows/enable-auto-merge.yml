@@ -20,7 +20,7 @@ jobs:
       - name: Enable native GitHub auto-merge
         uses: actions/github-script@v8
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.AUTO_MERGE_PAT }}
           script: |
             await github.graphql(
               `
