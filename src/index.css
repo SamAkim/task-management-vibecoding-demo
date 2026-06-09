@@ -249,7 +249,6 @@ body {
   transition: all var(--transition-fast);
 }
 
-/* Fix S7924: darken gradient so white text achieves >= 4.5:1 contrast ratio */
 .task-form__button--submit {
   background: linear-gradient(135deg, #4338ca, #6366f1);
   color: #ffffff;
@@ -497,6 +496,9 @@ body {
 }
 
 .task-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
   margin-bottom: var(--space-md);
 }
 
@@ -684,11 +686,6 @@ body {
 }
 
 /* Task Card Meta due dates */
-.task-card__meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
 
 .task-card__due-date {
   font-size: 0.82rem;

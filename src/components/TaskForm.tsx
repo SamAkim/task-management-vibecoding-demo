@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { SubmitEvent } from 'react';
 import type { Task, TaskStatus, TaskPriority } from '../types/Task';
 
 interface TaskFormProps {
@@ -7,6 +7,30 @@ interface TaskFormProps {
   readonly onUpdate?: (id: string, updates: { title: string; description: string; status: TaskStatus; priority: TaskPriority; dueDate: string }) => void;
   readonly taskToEdit?: Task | null;
   readonly onCancelEdit?: () => void;
+}
+
+interface EditOverrides {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string;
+  editId?: string;
+}
+
+// Pure helper function declared outside the component to reduce cognitive complexity
+function getFieldValue<T>(
+  field: keyof EditOverrides,
+  localVal: T,
+  taskVal: T | undefined,
+  isEditing: boolean,
+  editOverrides: EditOverrides,
+  taskToEditId: string | undefined
+): T {
+  if (isEditing && editOverrides.editId === taskToEditId && editOverrides[field] !== undefined) {
+    return editOverrides[field] as unknown as T;
+  }
+  return (isEditing ? taskVal : localVal) as T;
 }
 
 export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskFormProps) {
@@ -18,40 +42,14 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
 
   const [errors, setErrors] = useState<{ title?: string; dueDate?: string }>({});
 
-  // Derive form values from taskToEdit when in edit mode
   const isEditing = !!taskToEdit;
-  const currentTitle = isEditing ? taskToEdit.title : title;
-  const currentDescription = isEditing ? taskToEdit.description : description;
-  const currentStatus = isEditing ? taskToEdit.status : status;
-  const currentPriority = isEditing ? taskToEdit.priority : priority;
-  const currentDueDate = isEditing ? taskToEdit.dueDate : dueDate;
+  const [editOverrides, setEditOverrides] = useState<EditOverrides>({});
 
-  // For edit mode, we track local overrides via a separate key
-  const [editOverrides, setEditOverrides] = useState<{
-    title?: string;
-    description?: string;
-    status?: TaskStatus;
-    priority?: TaskPriority;
-    dueDate?: string;
-    editId?: string;
-  }>({});
-
-  const editTitle = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.title !== undefined
-    ? editOverrides.title : currentTitle;
-  const editDescription = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.description !== undefined
-    ? editOverrides.description : currentDescription;
-  const editStatus = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.status !== undefined
-    ? editOverrides.status : currentStatus;
-  const editPriority = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.priority !== undefined
-    ? editOverrides.priority : currentPriority;
-  const editDueDate = taskToEdit && editOverrides.editId === taskToEdit.id && editOverrides.dueDate !== undefined
-    ? editOverrides.dueDate : currentDueDate;
-
-  const displayTitle = isEditing ? editTitle : title;
-  const displayDescription = isEditing ? editDescription : description;
-  const displayStatus = isEditing ? editStatus : status;
-  const displayPriority = isEditing ? editPriority : priority;
-  const displayDueDate = isEditing ? editDueDate : dueDate;
+  const displayTitle = getFieldValue('title', title, taskToEdit?.title, isEditing, editOverrides, taskToEdit?.id) ?? '';
+  const displayDescription = getFieldValue('description', description, taskToEdit?.description, isEditing, editOverrides, taskToEdit?.id) ?? '';
+  const displayStatus = getFieldValue('status', status, taskToEdit?.status, isEditing, editOverrides, taskToEdit?.id) ?? 'todo';
+  const displayPriority = getFieldValue('priority', priority, taskToEdit?.priority, isEditing, editOverrides, taskToEdit?.id) ?? 'medium';
+  const displayDueDate = getFieldValue('dueDate', dueDate, taskToEdit?.dueDate, isEditing, editOverrides, taskToEdit?.id) ?? '';
 
   const validate = (): boolean => {
     const newErrors: { title?: string; dueDate?: string } = {};
@@ -65,7 +63,7 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
 
@@ -96,47 +94,32 @@ export function TaskForm({ onSubmit, onUpdate, taskToEdit, onCancelEdit }: TaskF
     setErrors({});
   };
 
-  const handleTitleChange = (value: string) => {
+  // Reusable helper to update a form field under editing or normal modes
+  const updateField = <K extends keyof EditOverrides, V>(
+    field: K,
+    value: EditOverrides[K] & V,
+    setter: (val: V) => void
+  ) => {
     if (isEditing && taskToEdit) {
-      setEditOverrides((prev) => ({ ...prev, title: value, editId: taskToEdit.id }));
+      setEditOverrides((prev) => ({ ...prev, [field]: value, editId: taskToEdit.id }));
     } else {
-      setTitle(value);
+      setter(value);
     }
+  };
+
+  const handleTitleChange = (value: string) => {
+    updateField('title', value, setTitle);
     if (value.trim()) {
       setErrors((prev) => ({ ...prev, title: undefined }));
     }
   };
 
-  const handleDescriptionChange = (value: string) => {
-    if (isEditing && taskToEdit) {
-      setEditOverrides((prev) => ({ ...prev, description: value, editId: taskToEdit.id }));
-    } else {
-      setDescription(value);
-    }
-  };
-
-  const handleStatusChange = (value: TaskStatus) => {
-    if (isEditing && taskToEdit) {
-      setEditOverrides((prev) => ({ ...prev, status: value, editId: taskToEdit.id }));
-    } else {
-      setStatus(value);
-    }
-  };
-
-  const handlePriorityChange = (value: TaskPriority) => {
-    if (isEditing && taskToEdit) {
-      setEditOverrides((prev) => ({ ...prev, priority: value, editId: taskToEdit.id }));
-    } else {
-      setPriority(value);
-    }
-  };
+  const handleDescriptionChange = (value: string) => updateField('description', value, setDescription);
+  const handleStatusChange = (value: TaskStatus) => updateField('status', value, setStatus);
+  const handlePriorityChange = (value: TaskPriority) => updateField('priority', value, setPriority);
 
   const handleDueDateChange = (value: string) => {
-    if (isEditing && taskToEdit) {
-      setEditOverrides((prev) => ({ ...prev, dueDate: value, editId: taskToEdit.id }));
-    } else {
-      setDueDate(value);
-    }
+    updateField('dueDate', value, setDueDate);
     if (value) {
       setErrors((prev) => ({ ...prev, dueDate: undefined }));
     }
